@@ -70,7 +70,7 @@ const populatedPost = await Promise.all(
       _id: user._id,
       username: user.username,
       email: user.email,
-      profilePicture: user.profilePicture,
+      profilePic: user.profilePic,
       bio: user.bio,
       followers: user.followers,
       following: user.following,
@@ -122,12 +122,14 @@ export const editProfile = async (req, res) => {
   try {
     const userId = req.id;
     const { bio, gender } = req.body;
-    const profilePicture = req.file; // image found on req.file onlyy
+    const profilePic = req.file; // image found on req.file onlyy
     let cloudResponse;
 
-    if (profilePicture) {
-      const fileUri = getDataUri(profilePicture);
+    if (profilePic) {
+      const fileUri = getDataUri(profilePic);
       cloudResponse = await cloudinary.uploader.upload(fileUri);
+      console.log(cloudResponse);
+      console.log(fileUri)
     }
 
     const user = await User.findById(userId);
@@ -140,7 +142,9 @@ export const editProfile = async (req, res) => {
 
     if (bio) user.bio = bio;
     if (gender) user.gender = gender;
-    if (profilePicture) user.profilePicture = profilePicture;
+    if (profilePic) user.profilePic = profilePic;
+    if (cloudResponse) user.profilePic = cloudResponse.secure_url;
+
 
     await user.save();
 
