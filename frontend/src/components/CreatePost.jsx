@@ -89,7 +89,7 @@ if(file){
 loading ? (
   <Button>
     <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-    Please Wait
+    Please Waittt!!
   </Button>
 ) : (
   <Button type="submit" onClick={createPostHandler} className="w-full">Post</Button>
