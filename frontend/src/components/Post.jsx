@@ -26,7 +26,7 @@ const Post = () => {
             <AvatarImage src="" alt="post_image" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <h1>username</h1>
+          <h1>Username</h1>
         </div>
 
         <Dialog>
