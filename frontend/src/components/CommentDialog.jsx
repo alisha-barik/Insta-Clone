@@ -5,9 +5,11 @@ import { MoreHorizontal } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import { useSelector } from "react-redux";
 
 const CommentDialog = ({ open, setOpen }) => {
 const [text, setText] = useState("");
+const {user} = useSelector(store=>store.auth);
 const changeEventHandler = (e) =>{
   const inputText = e.target.value;
   if(inputText.trim()){
@@ -40,12 +42,12 @@ alert(text)
               <div className="flex gap-3 items-center">
                 <Link>
                   <Avatar>
-                    <AvatarImage src="" />
+                    <AvatarImage src={user.profilePic} className="h-8 w-8" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                 </Link>
                 <div>
-                  <Link className="font-semibold text-xs">username</Link>
+                  <Link className="font-semibold text-xs">{user.username}</Link>
                   {/* <span>Bio here.....</span> */}
                 </div>
               </div>

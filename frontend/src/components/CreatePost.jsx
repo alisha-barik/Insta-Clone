@@ -12,14 +12,20 @@ import { readFileAsDataURL } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setPosts } from "@/redux/postSlice";
 
 const CreatePost = ({ open, setOpen }) => {
+   console.log("edrf")
   const imageRef = useRef();
   const [file, setFile] = useState("");
   const [caption, setCaption] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useSelector((store) => store.auth);
 
+  const dispatch = useDispatch();
+  const { posts } = useSelector((store) => store.post);
   const fileChangeHandler = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -30,6 +36,7 @@ const CreatePost = ({ open, setOpen }) => {
   };
 
   const createPostHandler = async (e) => {
+    console.log("edrf")
     const formData = new FormData();
     formData.append("caption", caption);
     if (file) formData.append("image", file);
@@ -49,7 +56,9 @@ const CreatePost = ({ open, setOpen }) => {
         }
       );
       if (res.data.success) {
+        dispatch(setPosts([res.data.post, ...posts]));
         setLoading(false);
+        setOpen(false);
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -67,11 +76,15 @@ const CreatePost = ({ open, setOpen }) => {
         <DialogTitle>Create a New Post</DialogTitle>
         <div className="flex gap-3 items-center">
           <Avatar>
-            <AvatarImage src="" alt="image" />
+            <AvatarImage
+              src={user.profilePic}
+              alt="image"
+              className="h-8 w-8"
+            />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="font-semibold text-xs">Username</h1>
+            <h1 className="font-semibold text-xs">{user.username}</h1>
             <span className="text-gray-600 text-xs">Bio here....</span>
           </div>
         </div>

@@ -50,7 +50,7 @@ export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
       .sort({ createdAt: -1 })
-      .populate({ path: "author", select: "username, profilePic" })
+      .populate({ path: "author", select: "username profilePic" })
       .populate({
         path: "comments",
         sort: { createdAt: -1 },
@@ -74,7 +74,7 @@ export const getUserPosts = async (req, res) => {
   try {
     const posts = await Post.find({ author: authorId })
       .sort({ createdAt: -1 })
-      .populate({ path: "author", select: "username, profilePic" })
+      .populate({ path: "author", select: "username profilePic" })
       .populate({
         path: "comments",
         sort: { createdAt: -1 },
@@ -155,7 +155,7 @@ export const addComment = async (req, res) => {
       post: postId,
     }).populate({
       path: "author",
-      select: "username, profilePic",
+      select: "username profilePic",
     });
 
     post.comments.push(comment);
@@ -174,7 +174,7 @@ export const getCommentsOfPost = async (req, res) => {
     const postId = req.params.id;
     const comments = await Comment.find({ post: postId }).populate(
       "author",
-      "username, profilePic"
+      "username profilePic"
     );
     if (!comment)
       return res
@@ -264,7 +264,7 @@ export const bookmarkPost = async (req, res) => {
     //delete associted comments of that post
     await Comment.deleteMany({ post: postId });
 
-    return res.status(200).json({ message: "posst deleted", success: true });
+    return res.status(200).json({ message: "post deleted", success: true });
   } catch (err) {
     console.log(err);
   }
