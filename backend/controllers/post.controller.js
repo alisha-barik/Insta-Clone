@@ -98,7 +98,7 @@ export const likePost = async (req, res) => {
   try {
     const likeKrneWalaUser = req.id;
     const postId = req.params.id;
-    const post = await Post.findById({ postId });
+    const post = await Post.findById( postId );
     if (!post)
       return res
         .status(404)
@@ -120,7 +120,7 @@ export const dislikePost = async (req, res) => {
   try {
     const likeKrneWalaUser = req.id;
     const postId = req.params.id;
-    const post = await Post.findById({ postId });
+    const post = await Post.findById( postId );
     if (!post)
       return res
         .status(404)
@@ -143,7 +143,7 @@ export const addComment = async (req, res) => {
     const commentKrneWalaUser = req.id;
     const postId = req.params.id;
     const { text } = req.body;
-    const post = await Post.findById({ postId });
+    const post = await Post.findById( postId );
     if (!text)
       return res
         .status(400)
@@ -193,7 +193,7 @@ export const deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const authorId = req.id;
-    const post = await Pots.findById(postId);
+    const post = await Post.findById(postId);
     if (!post)
       return res
         .status(404)
@@ -225,7 +225,7 @@ export const bookmarkPost = async (req, res) => {
   try {
     const postId = req.params.id;
     const authorId = req.id;
-    const post = await Pots.findById(postId);
+    const post = await Post.findById(postId);
     if (!post)
       return res
         .status(404)
