@@ -9,7 +9,7 @@ import CommentDialog from "./CommentDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import axios from "axios";
-import { setPosts } from "@/redux/postSlice";
+import { setPosts, setSelectedPost } from "@/redux/postSlice";
 
 const Post = ({ post }) => {
   const [text, setText] = useState("");
@@ -17,8 +17,9 @@ const Post = ({ post }) => {
   const { posts } = useSelector((store) => store.post);
   const dispatch = useDispatch();
   const { user } = useSelector((store) => store.auth);
-    const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
+  const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
   const [postLike, setPostLike] = useState(post.likes.length);
+  const [comment, setComment] = useState(post.comments);
   const changeEventHandler = (e) => {
     const inpuText = e.target.value;
     if (inpuText.trim()) {
@@ -29,7 +30,7 @@ const Post = ({ post }) => {
   };
 
   const likeOrDislikeHandler = async () => {
-     console.log("heeeeeeeee like");
+    console.log("heeeeeeeee like");
     try {
       const action = liked ? "dislike" : "like";
       const res = await axios.get(
@@ -38,18 +39,56 @@ const Post = ({ post }) => {
       );
       if (res.data.success) {
         const updatedLikes = liked ? postLike - 1 : postLike + 1;
-        setPostLike(updatedLikes)
+        setPostLike(updatedLikes);
         setLiked(!liked);
 
-        const updatedPostdata = posts.map(p => p._id === post._id ? {
-          ...p, likes: liked ? p.likes.filter(id => id !== user._id) : [...p.likes, user._id]
-        } : p
-      );
-      dispatch(setPosts(updatedPostdata));
+        const updatedPostdata = posts.map((p) =>
+          p._id === post._id
+            ? {
+                ...p,
+                likes: liked
+                  ? p.likes.filter((id) => id !== user._id)
+                  : [...p.likes, user._id],
+              }
+            : p
+        );
+        dispatch(setPosts(updatedPostdata));
         toast.success(res.data.message);
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const commentHandler = async () => {
+    console.log("hello bro");
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/post/${post?._id}/comment`,
+        { text },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        const updatedCommentData = [...comment, res.data.comment];
+        setComment(updatedCommentData);
+
+        const updatedPostdata = posts.map((p) =>
+          p._id === post._id ? { ...p, comments: updatedCommentData } : p
+        );
+
+        dispatch(setPosts(updatedPostdata));
+        toast.success(res.data.message);
+        setText("");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
     }
   };
 
@@ -122,22 +161,25 @@ const Post = ({ post }) => {
 
       <div className="flex  items-center justify-between m-y">
         <div className="flex items-center gap-3">
-{liked ? (
-  <FaHeart
-    onClick={likeOrDislikeHandler}
-    size={"22px"}
-    className="cursor-pointer text-red-500 hover:text-red-600"
-  />
-) : (
-  <FaRegHeart
-    onClick={likeOrDislikeHandler}
-    size={"22px"}
-    className="cursor-pointer hover:text-gray-600"
-  />
-)}
+          {liked ? (
+            <FaHeart
+              onClick={likeOrDislikeHandler}
+              size={"22px"}
+              className="cursor-pointer text-red-500 hover:text-red-600"
+            />
+          ) : (
+            <FaRegHeart
+              onClick={likeOrDislikeHandler}
+              size={"22px"}
+              className="cursor-pointer hover:text-gray-600"
+            />
+          )}
           <MessageCircle
             className="cursor-pointer hover:text-gray-600"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              dispatch(setSelectedPost(post));
+              setOpen(true);
+            }}
           />
           <Send className="cursor-pointer hover:text-gray-600" />
         </div>
@@ -149,7 +191,10 @@ const Post = ({ post }) => {
         {post.caption}
       </p>
       <span
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          dispatch(setSelectedPost(post));
+          setOpen(true);
+        }}
         className="cursor-pointer text-sm text-gray-400"
       >
         View all {post.comments.length} comments
@@ -163,7 +208,14 @@ const Post = ({ post }) => {
           onChange={changeEventHandler}
           className="outline-none text-sm w-full"
         />
-        {text && <span className="text-[#3BADF8]">Post</span>}
+        {text && (
+          <span
+            onClick={commentHandler}
+            className="text-[#3BADF8] cursor-pointer"
+          >
+            Post
+          </span>
+        )}
       </div>
     </div>
   );

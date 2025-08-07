@@ -1,7 +1,7 @@
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { MoreHorizontal } from "lucide-react";
-
+import Comment from "./Comment";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 
 const CommentDialog = ({ open, setOpen }) => {
 const [text, setText] = useState("");
+
+  const { selectedPost} = useSelector(store=>store.post);
 const {user} = useSelector(store=>store.auth);
 const changeEventHandler = (e) =>{
   const inputText = e.target.value;
@@ -32,7 +34,7 @@ alert(text)
         <div className="flex flex-1">
           <div className="w-1/2">
             <img
-              src="https://www.hubspot.com/hubfs/Losing-Followers-on-Instagram.webp"
+              src={selectedPost?.image}
               alt="post_text"
               className="w-full h-full max-h-[90vh] object-cover rounded-l-lg"
             />
@@ -42,12 +44,12 @@ alert(text)
               <div className="flex gap-3 items-center">
                 <Link>
                   <Avatar>
-                    <AvatarImage src={user.profilePic} className="h-8 w-8" />
+                    <AvatarImage src={selectedPost?.author?.profilePicture} className="h-8 w-8" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                 </Link>
                 <div>
-                  <Link className="font-semibold text-xs">{user.username}</Link>
+                  <Link className="font-semibold text-xs">{selectedPost?.author?.username}</Link>
                   {/* <span>Bio here.....</span> */}
                 </div>
               </div>
@@ -66,10 +68,9 @@ alert(text)
             </div>
             <hr />
             <div className="flex-1 overflow-y-auto max-h-96 p-4">
-              r444444444444 eeeeeeeeeeeeeee cfffffffffff r444444444444
-              eeeeeeeeeeeeeee cfffffffffff r444444444444 eeeeeeeeeeeeeee
-              cfffffffffff r444444444444 eeeeeeeeeeeeeee cfffffffffff
-              r444444444444 eeeeeeeeeeeeeee cfffffffffff
+              {
+                selectedPost?.comments.map((comment)=> <Comment key={comment._id} comment={comment} />)
+              }
             </div>
             <div className="p-4">
               <div className="flex gap-2">
