@@ -2,16 +2,26 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { MoreHorizontal } from "lucide-react";
 import Comment from "./Comment";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { toast } from "sonner";
+import { setPosts } from "@/redux/postSlice";
 
 const CommentDialog = ({ open, setOpen }) => {
 const [text, setText] = useState("");
-
-  const { selectedPost} = useSelector(store=>store.post);
+const dispatch = useDispatch();
+  const { selectedPost, posts} = useSelector(store=>store.post);
+  const [comment, setComment] = useState(selectedPost?.comments);
 const {user} = useSelector(store=>store.auth);
+
+useEffect(()=>{
+  if(selectedPost){
+    setComment(selectedPost.comments);
+  }
+}, [selectedPost]);
 const changeEventHandler = (e) =>{
   const inputText = e.target.value;
   if(inputText.trim()){
@@ -21,9 +31,38 @@ const changeEventHandler = (e) =>{
     setText("");
   }
 }
-const sendMessageHandler = async ()=>{
-alert(text)
-}
+  const sendMessageHandler = async () => {
+    console.log("hello bro");
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/post/${selectedPost?._id}/comment`,
+        { text },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        const updatedCommentData = [...comment, res.data.comment];
+        setComment(updatedCommentData);
+
+        const updatedPostdata = posts.map((p) =>
+          p._id === selectedPost._id ? { ...p, comments: updatedCommentData } : p
+        );
+
+        dispatch(setPosts(updatedPostdata));
+        toast.success(res.data.message);
+        setText("");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -69,7 +108,7 @@ alert(text)
             <hr />
             <div className="flex-1 overflow-y-auto max-h-96 p-4">
               {
-                selectedPost?.comments.map((comment)=> <Comment key={comment._id} comment={comment} />)
+                comment.map((comment)=> <Comment key={comment._id} comment={comment} />)
               }
             </div>
             <div className="p-4">
