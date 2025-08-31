@@ -3,6 +3,7 @@ import Post from "../models/post.model.js";
 import {Comment} from "../models/commnet.model.js";
 import cloudinary from "../utils/coudinary.js";
 import User from "../models/user.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 
 export const addNewPost = async (req, res) => {
@@ -108,6 +109,21 @@ export const likePost = async (req, res) => {
     await post.updateOne({ $addToSet: { likes: likeKrneWalaUser } });
     await post.save();
 
+    const user = await User.findById(likeKrneWalaUser).select('username profilePic')
+ const postOwnerId = post.author.toString();
+ console.log("postOwnerId------>>>",postOwnerId,likeKrneWalaUser);
+ if(postOwnerId !== likeKrneWalaUser){
+  const notification = {
+    type:'like',
+    userId:likeKrneWalaUser,
+    userDetails:user,
+    postId,
+    message:"Your Post is being Liked"
+  }
+   console.log("notification------>>>",notification);
+  const postOwnerSocketid = getReceiverSocketId(postOwnerId);
+  io.to(postOwnerSocketid).emit('notification', notification);
+ }
     return res
       .status(200)
       .json({ message: "Post liked brother", success: true });
@@ -129,6 +145,20 @@ export const dislikePost = async (req, res) => {
     //like logic
     await post.updateOne({ $pull: { likes: likeKrneWalaUser } });
     await post.save();
+
+    const user = await User.findById(likeKrneWalaUser).select('username profilePic')
+ const postOwnerId = post.author.toString();
+ if(postOwnerId !== likeKrneWalaUser){
+  const notification = {
+    type:'dislike',
+    userId:likeKrneWalaUser,
+    userDetails:user,
+    postId,
+    message:"Your Post is being Liked"
+  }
+  const postOwnerSocketid = getReceiverSocketId(postOwnerId);
+  io.to(postOwnerSocketid).emit('notification', notification);
+ }
 
     return res
       .status(200)
@@ -234,47 +264,38 @@ export const bookmarkPost = async (req, res) => {
   try {
     const postId = req.params.id;
     const authorId = req.id;
+
     const post = await Post.findById(postId);
-    if (!post)
-      return res
-        .status(404)
-        .json({ message: "Post not found", success: false });
-
-    if (post.author.toString() !== authorId)
-      return res
-        .status(403)
-        .json({ message: "unathorised user", success: false, comments });
-
-    //remove the post id from the user's post.
-    const user = await User.findById(authorId);
-
-    if (user.bookmarks.includes(post._id)) {
-      await user.updateOne({ $pull: { bookmarks: post._id } });
-      await user.save();
-      return res
-        .status(200)
-        .json({
-          message: "ppost removed from bookmark",
-          type: "unsaved",
-          success: true,
-        });
-    } else {
-      await user.updateOne({ $push: { bookmarks: post._id } });
-      await user.save();
-      return res
-        .status(200)
-        .json({
-          message: "ppost saved from bookmark",
-          type: "saved",
-          success: true,
-        });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found", success: false });
     }
 
-    //delete associted comments of that post
-    await Comment.deleteMany({ post: postId });
+    const user = await User.findById(authorId);
 
-    return res.status(200).json({ message: "post deleted", success: true });
-  } catch (err) {
-    console.log(err);
+    let actionType;
+    if (user.bookmarks.includes(post._id)) {
+      // remove from bookmarks
+      user.bookmarks.pull(post._id);
+      actionType = "unsaved";
+    } else {
+      // add to bookmarks
+      user.bookmarks.addToSet(post._id);
+      actionType = "saved";
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      type: actionType,
+      bookmarked: actionType === "saved", // <-- boolean for frontend
+      message:
+        actionType === "saved"
+          ? "Post bookmarked"
+          : "Post removed from bookmark",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error", success: false });
   }
 };

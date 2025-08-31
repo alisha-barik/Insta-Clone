@@ -3,3 +3,8 @@
 @tailwind utilities;
   @import "tailwindcss";
 @import "tw-animate-css";
+
+img {
+  max-width: 100%;
+  height: auto;
+}

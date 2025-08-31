@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "@/redux/postSlice";
 
 const CreatePost = ({ open, setOpen }) => {
-   console.log("edrf")
+  console.log("edrf");
   const imageRef = useRef();
   const [file, setFile] = useState("");
   const [caption, setCaption] = useState("");
@@ -36,7 +36,7 @@ const CreatePost = ({ open, setOpen }) => {
   };
 
   const createPostHandler = async (e) => {
-    console.log("edrf")
+    console.log("edrf");
     const formData = new FormData();
     formData.append("caption", caption);
     if (file) formData.append("image", file);
@@ -77,7 +77,7 @@ const CreatePost = ({ open, setOpen }) => {
         <div className="flex gap-3 items-center">
           <Avatar>
             <AvatarImage
-              src={user?.profilePic ? user?.profilePic  : ""}
+              src={user?.profilePic ? user?.profilePic : ""}
               alt="image"
               className="h-8 w-8"
             />
@@ -95,7 +95,7 @@ const CreatePost = ({ open, setOpen }) => {
           placeholder="write a caption..."
         />
         {imagePreview && (
-          <div className="w-full h-64 flex items-center justify-center">
+          <div className="w-full h-48 sm:h-64 flex items-center justify-center">
             <img
               src={imagePreview}
               alt="preview_img"

@@ -11,9 +11,9 @@ const Profile = () => {
   const userId = params.id;
   useGetUserProfile(userId);
 
-  const { userProfile } = useSelector((store) => store.auth);
+  const { userProfile, user } = useSelector((store) => store.auth);
   console.log(userProfile);
-  const [isLoggedInUserProfile, setIsLoggedInUserProfile] = useState(false);
+  const isLoggedInUserProfile = user?._id === userProfile?._id; 
   const [isFollowing, setIsFollowing] = useState(true);
   const [activeTab, setActiveTab] = useState("posts");
   const displayedPost =
@@ -22,9 +22,9 @@ const Profile = () => {
     setActiveTab(tab);
   };
   return (
-    <div className="flex max-w-5xl justify-center mx-auto pl-10">
+<div className="flex max-w-5xl justify-center mx-auto px-4 sm:px-6">
       <div className="flex flex-col gap-20 p-8">
-        <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <section className="flex items-center justify-center">
             <Avatar>
               <AvatarImage
@@ -81,19 +81,19 @@ const Profile = () => {
               <div className="flex items-center gap-4">
                 <p>
                   <span className="font-semibold">
-                    {userProfile?.posts.length}{" "}
+                    {userProfile?.posts?.length}{" "}
                   </span>
                   posts
                 </p>
                 <p>
                   <span className="font-semibold">
-                    {userProfile?.followers.length}{" "}
+                    {userProfile?.followers?.length}{" "}
                   </span>
                   followers
                 </p>
                 <p>
                   <span className="font-semibold">
-                    {userProfile?.following.length}{" "}
+                    {userProfile?.following?.length}{" "}
                   </span>
                   following
                 </p>
@@ -134,7 +134,7 @@ const Profile = () => {
             <span className="py-3 cursor-pointer">REELS</span>
             <span className="py-3 cursor-pointer">TAGS</span>
           </div>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {displayedPost?.map((post) => {
               return (
                 <div key={post?._id} className="relative group cursor-pointer">
@@ -147,7 +147,7 @@ const Profile = () => {
                     <div className="flex items-center text-white space-x-4">
                       <button className="flex items-center gap-2 hover:text-gray-300">
                         <Heart />
-                        <span>{post?.likes.length}</span>
+                        <span>{post?.likes?.length}</span>
                       </button>
                       <button className="flex items-center gap-2 hover:text-gray-300">
                         <MessageCircle />
