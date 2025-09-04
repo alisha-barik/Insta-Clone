@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { Upload, MapPin, Star, Calendar, Hash, Image as ImageIcon, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
+
+
+const CreatePost = ({ open, setOpen }) => {
+  const categories = ['Adventure', 'Food', 'Culture', 'Nature', 'Relaxation']
+  const [formData, setFormData] = useState({
+    title: '',
+    caption: '',
+    image: '',
+    location: {
+      city: '',
+      country: ''
+    },
+    category: '',
+    tags: [],
+    date: '',
+    rating: undefined
+  });
+
+  const [tagInput, setTagInput] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageUpload = (url) => {
+    setFormData({ ...formData, image: url });
+    setPreviewImage(url);
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData({
+        ...formData,
+        tags: [...formData.tags, tagInput.trim().toLowerCase()]
+      });
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    alert('Post created successfully! 🎉');
+    
+    // Reset form
+    setFormData({
+      title: '',
+      caption: '',
+      image: '',
+      location: { city: '', country: '' },
+      category: '',
+      tags: [],
+      date: '',
+      rating: undefined
+    });
+    setPreviewImage('');
+    setIsSubmitting(false);
+  };
+
+  const isFormValid = formData.title.trim() && formData.caption.trim() && 
+                    formData.image && formData.location.city && 
+                    formData.location.country && formData.category;
+
+  return (
+        <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        {/* 👇 Add DialogTitle for accessibility */}
+        <DialogTitle>Create a New Post</DialogTitle>
+
+    <div className="flex-1 bg-gray-50 pt-20 pb-20 md:pt-24 md:pb-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Share Your Travel Experience</h2>
+            <p className="text-gray-600">Tell the world about your amazing journey</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Photo *</label>
+              {previewImage ? (
+                <div className="relative">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-xl"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewImage('');
+                      setFormData({ ...formData, image: '' });
+                    }}
+                    className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors duration-200"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors duration-200">
+                  <ImageIcon className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-600 mb-4">Upload a photo or paste image URL</p>
+                  <div className="space-y-3">
+                    <input
+                      type="url"
+                      placeholder="Paste image URL here..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleImageUpload(e.target.value);
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500">Try: https://images.pexels.com/photos/...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Title *</label>
+              <input
+                type="text"
+                placeholder="Give your post a catchy title..."
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                maxLength={100}
+              />
+              <p className="text-xs text-gray-500">{formData.title.length}/100 characters</p>
+            </div>
+
+            {/* Caption */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Caption *</label>
+              <textarea
+                placeholder="Share your travel experience in detail..."
+                value={formData.caption}
+                onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500">{formData.caption.length}/500 characters</p>
+            </div>
+
+            {/* Location */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700">City *</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Tokyo"
+                    value={formData.location.city}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      location: { ...formData.location, city: e.target.value } 
+                    })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700">Country *</label>
+                <input
+                  type="text"
+                  placeholder="Japan"
+                  value={formData.location.country}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    location: { ...formData.location, country: e.target.value } 
+                  })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            {/* Category & Date */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700">Category *</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700">Travel Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Your Rating (Optional)</label>
+              <div className="flex items-center space-x-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      rating: formData.rating === star ? undefined : star 
+                    })}
+                    className={`p-1 rounded transition-colors duration-200 ${
+                      formData.rating && formData.rating >= star
+                        ? 'text-yellow-500'
+                        : 'text-gray-300 hover:text-yellow-400'
+                    }`}
+                  >
+                    <Star size={24} className={
+                      formData.rating && formData.rating >= star ? 'fill-current' : ''
+                    } />
+                  </button>
+                ))}
+                {formData.rating && (
+                  <span className="ml-2 text-sm text-gray-600">
+                    {formData.rating}/5 stars
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">Tags</label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Add tags (press Enter)"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200"
+                />
+              </div>
+              {formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {formData.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
+                    >
+                      <span>#{tag}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="hover:bg-blue-200 rounded-full p-1 transition-colors duration-200"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className={`w-full py-4 rounded-lg font-semibold transition-all duration-200 ${
+                  isFormValid && !isSubmitting
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Creating Post...</span>
+                  </div>
+                ) : (
+                  'Share Your Experience'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Tips */}
+        <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200">
+          <h3 className="font-semibold text-blue-800 mb-2">💡 Tips for Great Posts</h3>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Use descriptive titles that capture the essence of your experience</li>
+            <li>• Share detailed captions with helpful tips for other travelers</li>
+            <li>• Add specific locations to help others find these amazing places</li>
+            <li>• Include relevant tags to make your post discoverable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    </DialogContent></Dialog>
+  );
+};
+
+export default CreatePost;

@@ -10,12 +10,14 @@ export const register = async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-     return res.status(401)
+      return res
+        .status(401)
         .json({ message: "please fill all the feilds", success: false });
     }
     const user = await User.findOne({ email });
     if (user) {
-     return res.status(401)
+      return res
+        .status(401)
         .json({ message: "Email Already Registered", success: false });
     }
 
@@ -25,7 +27,8 @@ export const register = async (req, res) => {
       email,
       password: hashedPassword,
     });
-   return res.status(201)
+    return res
+      .status(201)
       .json({ message: "Successfully Registered", success: true });
   } catch (err) {
     console.log(err);
@@ -36,35 +39,38 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(401)
+      return res
+        .status(401)
         .json({ message: "please fill all the feilds", success: false });
     }
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(401)
+      return res
+        .status(401)
         .json({ message: "incorrect userid or password", success: false });
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
-if (!isPasswordMatch) {
-  return res.status(401).json({ message: "incorrect userid or password", success: false });
-}
+    if (!isPasswordMatch) {
+      return res
+        .status(401)
+        .json({ message: "incorrect userid or password", success: false });
+    }
 
     const token = await jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
       expiresIn: "1d",
     });
 
     //populate each post if in the posts array
-const populatedPost = await Promise.all(
-  user.posts.map(async (postId) => {
-    const post = await Post.findById(postId);
-    if(post.author.equals(user._id)){
-      return post;
-    }
-    return null;
-  })
-)
-
+    const populatedPost = await Promise.all(
+      user.posts.map(async (postId) => {
+        const post = await Post.findById(postId);
+        if (post.author.equals(user._id)) {
+          return post;
+        }
+        return null;
+      })
+    );
 
     user = {
       _id: user._id,
@@ -76,7 +82,6 @@ const populatedPost = await Promise.all(
       following: user.following,
       posts: populatedPost,
     };
-
 
     return res
       .cookie("token", token, {
@@ -108,7 +113,9 @@ export const logout = async (_, res) => {
 export const getProfile = async (req, res) => {
   try {
     const userId = req.params.id;
-    let user = await User.findById(userId).populate({path:'posts', createdAt:-1}).populate('bookmarks');
+    let user = await User.findById(userId)
+      .populate({ path: "posts", createdAt: -1 })
+      .populate("bookmarks");
     return res.status(200).json({
       user,
       success: true,
@@ -121,15 +128,13 @@ export const getProfile = async (req, res) => {
 export const editProfile = async (req, res) => {
   try {
     const userId = req.id;
-    const { bio, gender } = req.body;
-    const profilePic = req.file; // image found on req.file onlyy
+    const { bio, gender, places } = req.body; // ✅ include places
+    const profilePic = req.file;
     let cloudResponse;
 
     if (profilePic) {
       const fileUri = getDataUri(profilePic);
       cloudResponse = await cloudinary.uploader.upload(fileUri);
-      console.log(cloudResponse);
-      console.log(fileUri)
     }
 
     const user = await User.findById(userId);
@@ -140,20 +145,39 @@ export const editProfile = async (req, res) => {
       });
     }
 
+    // ✅ update fields if provided
     if (bio) user.bio = bio;
     if (gender) user.gender = gender;
     if (cloudResponse) user.profilePic = cloudResponse.secure_url;
 
+    if (places) {
+      const parsedPlaces =
+        typeof places === "string" ? JSON.parse(places) : places;
+
+      const normalizedPlaces = parsedPlaces.map((p) => ({
+        lat: Number(p.lat),
+        lng: Number(p.lng),
+        name: p.name ? p.name.toLowerCase().trim() : "",
+        visitedAt: p.visitedAt ? new Date(p.visitedAt) : new Date(),
+      }));
+
+      // overwrite
+      user.places = normalizedPlaces;
+
+      // OR if merging, do something like:
+      // user.places = [...user.places, ...normalizedPlaces];
+    }
 
     await user.save();
 
     return res.status(200).json({
-      message: "Profile Updates",
+      message: "Profile Updated",
       success: true,
       user,
     });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ message: "Something went wrong", success: false });
   }
 };
 
@@ -201,14 +225,20 @@ export const followUnfollow = async (req, res) => {
 
     const isFollowing = user.following.includes(targetUserId);
     console.log("User:", user);
-console.log("Target User:", targetUser);
-console.log("Already Following?", isFollowing);
+    console.log("Target User:", targetUser);
+    console.log("Already Following?", isFollowing);
 
     if (isFollowing) {
       // UNFOLLOW
       await Promise.all([
-        User.updateOne({ _id: currentUserId }, { $pull: { following: targetUserId } }),
-        User.updateOne({ _id: targetUserId }, { $pull: { followers: currentUserId } }),
+        User.updateOne(
+          { _id: currentUserId },
+          { $pull: { following: targetUserId } }
+        ),
+        User.updateOne(
+          { _id: targetUserId },
+          { $pull: { followers: currentUserId } }
+        ),
       ]);
 
       return res.status(200).json({
@@ -218,8 +248,14 @@ console.log("Already Following?", isFollowing);
     } else {
       // FOLLOW
       await Promise.all([
-        User.updateOne({ _id: currentUserId }, { $push: { following: targetUserId } }),
-        User.updateOne({ _id: targetUserId }, { $push: { followers: currentUserId } }),
+        User.updateOne(
+          { _id: currentUserId },
+          { $push: { following: targetUserId } }
+        ),
+        User.updateOne(
+          { _id: targetUserId },
+          { $push: { followers: currentUserId } }
+        ),
       ]);
 
       return res.status(200).json({

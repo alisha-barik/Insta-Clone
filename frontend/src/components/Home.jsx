@@ -12,9 +12,10 @@ const Home = () => {
     <div className="flex w-full">
       <div className="flex-1 max-w-2xl mx-auto px-2">
         <Feed />
-        <Outlet />
+        {/* <Outlet /> */}
       </div>
-      <RightSidebar />
+       <div className="px-2 md:hidden lg:block ml-8">
+      <RightSidebar /></div>
     </div>
   );
 };

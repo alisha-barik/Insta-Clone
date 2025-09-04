@@ -19,15 +19,12 @@ const ChatPage = () => {
   const dispatch = useDispatch();
 
   const sendMessageHandler = async (receiverId) => {
-    console.log("hellloooo vbhaiiii");
     try {
       const res = await axios.post(
         `http://localhost:8000/api/v1/message/send/${receiverId}`,
         { textMessage },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
         }
       );
@@ -47,28 +44,33 @@ const ChatPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row md:ml-[16%] h-screen">
-      <section className="w-full md:w-1/4 my-8">
-        <h1 className="font-bold mb-4 px-3 text-xl">{user?.username}</h1>
-        <hr className="mb-4 border-gray-300" />
-        <div className="overflow-y-auto h-[80vh]">
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <section className="w-16 md:w-1/4 border-r border-gray-300 flex flex-col">
+        <h1 className="hidden md:block font-bold mb-4 px-3 text-xl mt-4">
+          {user?.username}
+        </h1>
+        <hr className="hidden md:block mb-4 border-gray-300" />
+        <div className="overflow-y-auto flex-1">
           {suggestedUsers.map((suggestedUser) => {
             const isOnline = onlineUsers.includes(suggestedUser?._id);
             return (
               <div
+                key={suggestedUser._id}
                 onClick={() => dispatch(setSelectedUser(suggestedUser))}
-                className="flex gap-3 items-center p-3 hover:bg-gray-50 cursor-pointer"
+                className="flex items-center justify-center md:justify-start gap-3 p-3 hover:bg-gray-50 cursor-pointer"
               >
-                <Avatar className="w-14 h-14">
+                <Avatar className="w-12 h-12">
                   <AvatarImage src={suggestedUser?.profilePic} />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
+                {/* Show name + status only on md+ screens */}
+                <div className="hidden md:flex flex-col">
                   <span className="font-medium">{suggestedUser?.username}</span>
                   <span
                     className={`text-xs font-bold ${
                       isOnline ? "text-green-600" : "text-red-600"
-                    } `}
+                    }`}
                   >
                     {isOnline ? "online" : "offline"}
                   </span>
@@ -78,8 +80,10 @@ const ChatPage = () => {
           })}
         </div>
       </section>
+
+      {/* Chat Section */}
       {selectedUser ? (
-        <section className="flex-1 border-l border-l-gray-300 flex flex-col h-full">
+        <section className="flex-1 flex flex-col h-full">
           <div className="flex gap-3 items-center px-3 py-2 border-b border-gray-300 sticky top-0 bg-white z-10">
             <Avatar>
               <AvatarImage
@@ -94,7 +98,7 @@ const ChatPage = () => {
             </div>
           </div>
           <Messages selectedUser={selectedUser} />
-          <div className="flex items-center p-4 border-t border-t-gray-300">
+          <div className="flex items-center p-4 border-t border-t-gray-300 sm:mb-6">
             <Input
               value={textMessage}
               onChange={(e) => setTextMessage(e.target.value)}
@@ -113,7 +117,7 @@ const ChatPage = () => {
           </div>
         </section>
       ) : (
-        <div className="flex flex-col items-center justify-center mx-auto">
+        <div className="flex flex-1 flex-col items-center justify-center">
           <MessageCircleCode className="w-32 h-32 my-4" />
           <h1 className="font-medium">Your messages</h1>
           <span>Send a message to start a chat.</span>

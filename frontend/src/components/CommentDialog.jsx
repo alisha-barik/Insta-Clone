@@ -14,6 +14,7 @@ const CommentDialog = ({ open, setOpen }) => {
 const [text, setText] = useState("");
 const dispatch = useDispatch();
   const { selectedPost, posts} = useSelector(store=>store.post);
+  console.log("selectedPost------", selectedPost);
   const [comment, setComment] = useState(selectedPost?.comments);
 const {user} = useSelector(store=>store.auth);
 
@@ -83,7 +84,7 @@ const changeEventHandler = (e) =>{
               <div className="flex gap-3 items-center">
                 <Link>
                   <Avatar>
-                    <AvatarImage src={selectedPost?.author?.profilePicture} className="h-8 w-8" />
+                    <AvatarImage src={selectedPost?.author?.profilePic} className="h-8 w-8" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                 </Link>

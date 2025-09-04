@@ -23,7 +23,23 @@ const authSlice = createSlice({
         setSelectedUser:(state, action)=>{
             state.selectedUser = action.payload;
         },
+            toggleFollow: (state, action) => {
+      const targetUserId = action.payload;
+      if (!state.user) return;
+
+      const isFollowing = state.user.following.includes(targetUserId);
+
+      if (isFollowing) {
+        // Unfollow
+        state.user.following = state.user.following.filter(
+          (id) => id !== targetUserId
+        );
+      } else {
+        // Follow
+        state.user.following.push(targetUserId);
+      }
+    },
     }
 });
-export const {setAuthUser, setSuggestedUsers, setUserProfile, setSelectedUser} = authSlice.actions;
+export const {setAuthUser, setSuggestedUsers, setUserProfile, setSelectedUser, toggleFollow} = authSlice.actions;
 export default authSlice.reducer;

@@ -12,6 +12,7 @@ import axios from "axios";
 import { setPosts, setSelectedPost } from "@/redux/postSlice";
 import { Badge } from "./ui/badge";
 import { Link } from "react-router-dom";
+import { toggleFollow } from "@/redux/authSlice";
 
 const Post = ({ post }) => {
   console.log("Posttttt---", post);
@@ -23,6 +24,8 @@ const Post = ({ post }) => {
   const [postLike, setPostLike] = useState(post.likes.length);
   const [comment, setComment] = useState(post.comments);
     const [bookmarked, setBookmarked] = useState(post.isBookmarked || false);
+
+      console.log("userrrrr---", user);
 
   const dispatch = useDispatch();
   const changeEventHandler = (e) => {
@@ -64,6 +67,24 @@ const Post = ({ post }) => {
       console.log(error);
     }
   };
+
+const followUnfollowHandler = async () => {
+  try {
+    const res = await axios.post(
+      `http://localhost:8000/api/v1/user/followorunfollow/${post?.author?._id}`,
+      {}, // send empty body
+      { withCredentials: true }
+    );
+
+    if (res.data.success) {
+      toast.success(res.data.message);
+      dispatch(toggleFollow(post.author._id));
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 
   const commentHandler = async () => {
     console.log("hello bro");
@@ -163,14 +184,26 @@ const Post = ({ post }) => {
             <MoreHorizontal className="cursor-pointer" />
           </DialogTrigger>
           <DialogContent className="flex flex-col items-center text-sm text-center">
-                        {user?._id !== post.author._id && (
-                         <Button
-              variant="ghost"
-              className="cursor-pointer w-fit text-[#ED4956] font-bold"
-            >
-              Unfollow
-            </Button>
-            )}
+{user?._id !== post.author._id && (
+  user?.following?.includes(post.author._id) ? (
+    <Button
+      variant="ghost"
+      className="cursor-pointer w-fit text-[#ED4956] font-bold"
+      onClick={followUnfollowHandler}
+    >
+      Unfollow
+    </Button>
+  ) : (
+    <Button
+      variant="ghost"
+      className="cursor-pointer w-fit text-blue-500 font-bold"
+      onClick={followUnfollowHandler}
+    >
+      Follow
+    </Button>
+  )
+)}
+
 
             <Button variant="ghost" className="cursor-pointer w-fit">
               Add to favorite

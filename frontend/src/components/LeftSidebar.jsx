@@ -11,6 +11,8 @@ import {
   Search,
   TrendingUp,
   MessageCircleCode,
+  Compass,
+  Send
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -34,8 +36,8 @@ const LeftSidebar = () => {
   const sidebarItems = [
     { icon: <Home />, text: "Home" },
     { icon: <Search />, text: "Search" },
-    { icon: <TrendingUp />, text: "Explore" },
-    { icon: <MessageCircle />, text: "Messages" },
+    { icon: <Compass />, text: "Explore" },
+    { icon: <Send />, text: "Messages" },
     { icon: <Heart />, text: "Notifications" },
     { icon: <PlusSquare />, text: "Create" },
     {
@@ -79,10 +81,13 @@ const LeftSidebar = () => {
     } else if (textType === "Messages") {
       navigate("/chat");
     }
+    
   };
   return (
-<div className="fixed top-0 z-10 left-0 px-4 border-r border-gray-300 
-                w-full md:w-[16%] h-screen hidden md:block">
+<div
+  className="fixed top-0 z-10 left-0 px-4 border-r border-gray-300 
+             w-full md:w-[10%] lg:w-[16%] h-screen hidden md:block bg-gradient-to-r from-blue-500 to-purple-600"
+>
       <div className="flex flex-col">
         <h1 className="my-8 pl-3 font-bold text-xl">LOGO</h1>
 
@@ -95,7 +100,7 @@ const LeftSidebar = () => {
                 className="flex gap-2 items-center relative hover:bg-gray-100 cursor-pointer rounded-lg p-3 my-3"
               >
                 {item.icon}
-                <span>{item.text}</span>
+                <span className="hidden lg:inline">{item.text}</span>
                 {item.text === "Notifications" &&
                   likeNotifications.length > 0 && (
                     <Popover>
