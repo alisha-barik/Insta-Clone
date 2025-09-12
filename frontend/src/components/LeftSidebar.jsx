@@ -72,21 +72,23 @@ const LeftSidebar = () => {
     if (textType === "Logout") {
       logoutHandler();
     } else if (textType === "Create") {
-      console.log(textType, "tgbhynj");
-      setOpen(true);
+       navigate("/create");
+      //setOpen(true);
     } else if (textType === "Profile") {
       navigate(`/profile/${user?._id}`);
     } else if (textType === "Home") {
       navigate("/");
     } else if (textType === "Messages") {
       navigate("/chat");
+    } else if (textType === "Notifications") {
+      navigate("/notification");
     }
     
   };
   return (
 <div
   className="fixed top-0 z-10 left-0 px-4 border-r border-gray-300 
-             w-full md:w-[10%] lg:w-[16%] h-screen hidden md:block bg-gradient-to-r from-blue-500 to-purple-600"
+             w-full md:w-[10%] lg:w-[16%] h-screen hidden md:block bg-gradient-to-r"
 >
       <div className="flex flex-col">
         <h1 className="my-8 pl-3 font-bold text-xl">LOGO</h1>
@@ -150,7 +152,6 @@ const LeftSidebar = () => {
           })}
         </div>
       </div>
-      <CreatePost open={open} setOpen={setOpen} />
     </div>
   );
 };

@@ -13,6 +13,8 @@ import { setSocket } from "./redux/socketSlice";
 import { setOnlineUsers } from "./redux/chatSlice";
 import { setLikeNotification } from "./redux/rtnSlice";
 import ProtectedRoutes from "./components/ProtectedRoutes";
+import CreatePost from "./components/CreatePost";
+import NotificationsPage from "./components/Notification";
 
 const browserRouter = createBrowserRouter([
   {
@@ -34,6 +36,14 @@ const browserRouter = createBrowserRouter([
       {
         path: "/chat",
         element: <ProtectedRoutes><ChatPage /></ProtectedRoutes>,
+      },
+            {
+        path: "/create",
+        element: <ProtectedRoutes><CreatePost /></ProtectedRoutes>,
+      },
+                  {
+        path: "/notification",
+        element: <ProtectedRoutes><NotificationsPage /></ProtectedRoutes>,
       },
     ],
   },

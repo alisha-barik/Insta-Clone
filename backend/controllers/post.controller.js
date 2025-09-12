@@ -7,45 +7,111 @@ import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const addNewPost = async (req, res) => {
   try {
-    const { caption } = req.body;
-    const image = req.file;
-    const authorId = req.id;
+    console.log("detaillssss comp ----", req.body);
 
-    if (!image) return res.status(400).json({ message: "Image required" });
+    const {
+      title,
+      caption,
+      city,
+      country,
+      category,
+      travelDate,
+      rating,
+      isCompanionPost,
+    } = req.body;
 
-    // image upload
-    const optimizedImageBuffer = await sharp(image.buffer)
+    // normalize tags
+    const tags = req.body.tags ? [].concat(req.body.tags).filter(Boolean) : [];
+
+    // ============================
+    // Companion details handling
+    // ============================
+    let companionDetails;
+
+    if (req.body.companionDetails) {
+      // Case 1: frontend sent as object
+      const c = req.body.companionDetails;
+      companionDetails = {
+        tripTitle: c.tripTitle || "",
+        travelDuration: c.travelDuration || "",
+        companionsNeeded: c.companionsNeeded || 1,
+        tripType: c.tripType || "",
+        destinations: c.destinations ? [].concat(c.destinations).filter(Boolean) : [],
+        expiresAt: c.expiresAt || null,
+      };
+    } else if (req.body["companionDetails[tripTitle]"]) {
+      // Case 2: frontend sent as bracket notation (form-data)
+      const destinations = req.body["companionDetails[destinations]"]
+        ? [].concat(req.body["companionDetails[destinations]"]).filter(Boolean)
+        : [];
+
+      companionDetails = {
+        tripTitle: req.body["companionDetails[tripTitle]"] || "",
+        travelDuration: req.body["companionDetails[travelDuration]"] || "",
+        companionsNeeded: req.body["companionDetails[companionsNeeded]"] || 1,
+        tripType: req.body["companionDetails[tripType]"] || "",
+        destinations,
+        expiresAt: req.body["companionDetails[expiresAt]"] || null,
+      };
+    }
+
+    // ============================
+    // Image handling
+    // ============================
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Image is required" });
+    }
+
+    // optimize with sharp
+    const optimizedImageBuffer = await sharp(req.file.buffer)
       .resize({ width: 800, height: 800, fit: "inside" })
       .toFormat("jpeg", { quality: 80 })
       .toBuffer();
 
-    // buffer to data uri
+    // convert to data URI
     const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString(
       "base64"
     )}`;
+
+    // upload to Cloudinary
     const cloudResponse = await cloudinary.uploader.upload(fileUri);
+
+    // ============================
+    // Create post
+    // ============================
     const post = await Post.create({
-      caption,
       image: cloudResponse.secure_url,
-      author: authorId,
+      title,
+      caption,
+      location: { city, country },
+      category,
+      travelDate,
+      rating: rating || 0,
+      tags,
+      isCompanionPost: isCompanionPost === "true" || isCompanionPost === true,
+      companionDetails,
+      author: req.id,
     });
-    const user = await User.findById(authorId);
+
+    // push post id to user
+    const user = await User.findById(req.id);
     if (user) {
       user.posts.push(post._id);
       await user.save();
     }
 
+    // populate author info (hide password)
     await post.populate({ path: "author", select: "-password" });
 
-    return res.status(201).json({
-      message: "New post added",
-      post,
-      success: true,
-    });
+    res.status(201).json({ success: true, message: "Post created!", post });
   } catch (error) {
-    console.log(error);
+    console.error("Add post error:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
+
 
 export const getAllPosts = async (req, res) => {
   try {
@@ -325,12 +391,14 @@ export const getPostById = async (req, res) => {
         path: "comments",
         populate: {
           path: "author",
-          select: "username profilePicture"
-        }
+          select: "username profilePicture",
+        },
       });
 
     if (!post) {
-      return res.status(404).json({ success: false, message: "Post not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
 
     res.status(200).json({ success: true, post });
